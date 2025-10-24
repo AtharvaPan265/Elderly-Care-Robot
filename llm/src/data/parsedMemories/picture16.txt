@@ -1,0 +1,5 @@
+Image_UID: picture16
+People: Tippi
+Year: 1962
+Event: Filming of Birds
+Story: This was a very exhausting shooting; I was always surrounded by the birds.
