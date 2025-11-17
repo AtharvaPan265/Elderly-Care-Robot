@@ -12,7 +12,7 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 
 # Local imports
-from tools import write_to_daily_file, read_daily_file, web_search
+from tools import write_to_daily_file, read_daily_file, web_search, show_image
 from functions import get_system_message
 
 # Load environment variables
@@ -33,7 +33,7 @@ llm = ChatGoogleGenerativeAI(
 )
 
 # Define your tools list
-tools = [write_to_daily_file, read_daily_file, web_search]
+tools = [write_to_daily_file, read_daily_file, web_search, show_image]
 
 # Bind tools to the LLM - this tells the LLM what tools are available
 llm_with_tools = llm.bind_tools(tools)
