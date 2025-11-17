@@ -1,0 +1,5 @@
+Image_UID: picture4
+People: Don, Dakota, Tippi, Melanie
+Year: 2017
+Event: Photoshooting from Hollywood Reporter
+Story: 
