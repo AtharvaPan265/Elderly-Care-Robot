@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { IoIosArrowBack } from 'react-icons/io';
-import { FaUserCircle, FaSave, FaPills, FaClock, FaHeart, FaPeopleArrows, FaStickyNote, FaTrashAlt, FaPlus } from 'react-icons/fa';
+import { FaUserCircle, FaSave, FaPills, FaClock, FaHeart, FaPeopleArrows, FaStickyNote, FaTrashAlt, FaPlus, FaImage } from 'react-icons/fa';
+import Image from 'next/image';
 
 import { useUserProfile } from '@/utils/userProfile';
 import { UserProfile } from '@/app/data/profileData'; 
@@ -64,18 +65,57 @@ const InputField: React.FC<InputFieldProps> = ({ label, type, placeholder, value
     </div>
 );
 
+interface ProfilePhotoEmbedProps {
+    photoUrl?: string;
+    onChange: (url: string) => void;
+}
+
+const ProfilePhotoEmbed: React.FC<ProfilePhotoEmbedProps> = ({ photoUrl, onChange }) => {
+    
+    const handlePhotoUpload = () => {
+        const newUrl = '/photos/family-member-placeholder.jpg'; 
+        onChange(photoUrl === newUrl ? '' : newUrl); 
+    };
+
+    return (
+        <div className="flex flex-col items-center gap-2">
+            <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-100 border border-gray-300 flex items-center justify-center">
+                {photoUrl ? (
+                    <Image src={photoUrl} alt="Profile" layout="fill" objectFit="cover" unoptimized />
+                ) : (
+                    <FaImage size={24} className="text-gray-400" />
+                )}
+            </div>
+            <button 
+                type="button" 
+                onClick={handlePhotoUpload} 
+                className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+            >
+                {photoUrl ? 'Remove Photo' : 'Add Photo'}
+            </button>
+        </div>
+    );
+};
+
 interface DynamicListProps {
     title: string;
     items: { id: number; [key: string]: any }[];
     updateItems: (items: any) => void;
     fields: { key: string; label: string; type: string; placeholder: string; }[];
+    photoKey?: string; 
+    notesPlaceholder?: string;
     addButtonText: string;
 }
 
-const DynamicList: React.FC<DynamicListProps> = ({ title, items, updateItems, fields, addButtonText }) => {
+const DynamicList: React.FC<DynamicListProps> = ({ title, items, updateItems, fields, photoKey, addButtonText, notesPlaceholder }) => {
     
     const addItem = () => {
-        const defaultNewItem = fields.reduce((acc, field) => ({ ...acc, [field.key]: '' }), { id: Date.now() });
+        const defaultNewItem = fields.reduce(
+            (acc: Record<string, any>, field) => ({ ...acc, [field.key]: '' }), 
+            { id: Date.now() } as Record<string, any>
+        );
+
+        if (photoKey) defaultNewItem[photoKey] = '';
         updateItems([...items, defaultNewItem]);
     };
 
@@ -86,24 +126,51 @@ const DynamicList: React.FC<DynamicListProps> = ({ title, items, updateItems, fi
     const handleChange = (id: number, key: string, value: any) => {
         updateItems(items.map(item => item.id === id ? { ...item, [key]: value } : item));
     };
+    
+    const handlePhotoChange = (id: number, url: string) => {
+        if (photoKey) handleChange(id, photoKey, url);
+    };
 
     return (
         <div className="space-y-3 pt-2">
              <h3 className="text-xl font-semibold mb-3">{title}</h3>
             {items.map(item => (
-                <div key={item.id} className={`bg-gray-50 p-3 rounded-lg flex flex-wrap gap-3 items-center border border-gray-200`}>
-                    {fields.map(field => (
-                        <div key={field.key} className={field.type === 'time' ? 'w-full md:w-auto' : 'flex-grow'}>
-                            <label className="text-xs font-medium text-gray-500 block">{field.label}</label>
-                            <input
-                                type={field.type}
-                                placeholder={field.placeholder}
-                                value={item[field.key]}
-                                onChange={(e) => handleChange(item.id, field.key, e.target.value)}
+                <div key={item.id} className={`bg-gray-50 p-3 rounded-lg flex flex-col md:flex-row gap-3 items-start border border-gray-200`}>
+                    
+                    {photoKey && (
+                        <div className="flex-shrink-0 pt-2">
+                            <ProfilePhotoEmbed 
+                                photoUrl={item[photoKey]} 
+                                onChange={(url) => handlePhotoChange(item.id, url)} 
+                            />
+                        </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-3 flex-grow">
+                        {fields.map(field => (
+                            <div key={field.key} className={field.type === 'time' || field.key === 'birthday' ? 'w-full md:w-auto' : 'flex-grow min-w-[150px]'}>
+                                <label className="text-xs font-medium text-gray-500 block mb-1">{field.label}</label>
+                                <input
+                                    type={field.type}
+                                    placeholder={field.placeholder}
+                                    value={item[field.key]}
+                                    onChange={(e) => handleChange(item.id, field.key, e.target.value)}
+                                    className="p-2 border rounded-md shadow-sm w-full text-sm"
+                                />
+                            </div>
+                        ))}
+                        <div className="w-full">
+                            <label className="text-xs font-medium text-gray-500 block mb-1">Notes to Remember</label>
+                            <textarea
+                                placeholder={notesPlaceholder || "Specific things to remember..."}
+                                value={item['notes'] || ''}
+                                onChange={(e) => handleChange(item.id, 'notes', e.target.value)}
+                                rows={1}
                                 className="p-2 border rounded-md shadow-sm w-full text-sm"
                             />
                         </div>
-                    ))}
+                    </div>
+                    
                     <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 p-2 ml-auto" title="Remove">
                         <FaTrashAlt size={16} />
                     </button>
@@ -118,7 +185,7 @@ const DynamicList: React.FC<DynamicListProps> = ({ title, items, updateItems, fi
 
 const ReadOnlyField: React.FC<{ label: string; value: string | number | undefined }> = ({ label, value }) => (
     <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-500">{label}</label>
+        <label className="block text-base font-medium text-gray-700">{label}</label>
         <p className="mt-1 block w-full rounded-xl p-3 bg-gray-50 text-gray-800 border border-gray-200">
             {value || 'N/A'}
         </p>
@@ -150,7 +217,7 @@ const ClientBirthdateDisplay: React.FC<{ dob: string }> = ({ dob }) => {
 
     return (
         <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-500">Date of Birth & Age</label>
+            <label className="block text-base font-medium text-gray-700">Date of Birth & Age</label>
             <p className="mt-1 block w-full rounded-xl p-3 bg-gray-50 text-gray-800 border border-gray-200">
                 {displayValue}
             </p>
@@ -175,7 +242,7 @@ export default function SettingsPage() {
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        alert('Profile Settings Saved! (Data persisted to browser storage)');
+        alert('Profile Settings Saved!');
     };
     
     const formatStringArray = (arr: string[] | undefined) => (arr && arr.length > 0) ? arr.join(', ') : 'None listed.';
@@ -190,7 +257,7 @@ export default function SettingsPage() {
                     Back to Dashboard
                 </Link>
 
-                <h1 className="text-4xl font-extrabold text-gray-900 mb-8 border-b-2 border-blue-100 pb-3">Edit Profile</h1>
+                <h1 className="text-4xl font-extrabold text-gray-900 mb-8 border-b-2 border-blue-100 pb-3">My Profile</h1>
 
                 {!isReady ? (
                     <div className="p-20 text-center text-xl text-gray-500">
@@ -199,9 +266,9 @@ export default function SettingsPage() {
                 ) : (
                     <form onSubmit={handleSave} className="space-y-12">
                         
-                        {/* SECTION I & V: GENERAL PROFILE & BIO */}
+                        {/* SECTION I & V: PERSONAL DETAILS & BIO */}
                         <section>
-                            <SectionTitle title="I. Personal Details & Bio" icon={FaUserCircle} />
+                            <SectionTitle title="Personal Details & Bio" icon={FaUserCircle} />
                             
                             <div className="flex flex-col items-center mb-6">
                                 <span className="inline-block h-20 w-20 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-400 shadow-inner">
@@ -209,25 +276,27 @@ export default function SettingsPage() {
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                <div className="col-span-2">
+                                    <ReadOnlyField label="Full Name" value={profile.name} />
+                                </div>
+                                <div className="col-span-2">
+                                    <InputField label="Nickname" type="text" placeholder="Tippi" value={profile.nickname} onChange={(v) => handleUpdate('nickname', v)} />
+                                </div>
                                 
-                                <InputField 
-                                    label="Date of Birth" 
-                                    type="date" 
-                                    placeholder="YYYY-MM-DD" 
-                                    value={profile.dateOfBirth} 
-                                    onChange={(v) => handleUpdate('dateOfBirth', v)} 
-                                    min="1920-01-01" 
-                                    max="1970-01-01" 
-                                />
-                                
-                                <ClientBirthdateDisplay dob={profile.dateOfBirth} />
+                                <div className="col-span-2">
+                                    <ClientBirthdateDisplay dob={profile.dateOfBirth} />
+                                </div>
+                                <div className="col-span-2">
+                                    <ReadOnlyField label="Place of Birth" value={profile.placeOfBirth} />
+                                </div>
 
-                                <ReadOnlyField label="Full Name (Setup)" value={profile.name} />
-                                <ReadOnlyField label="Place of Birth (Setup)" value={profile.placeOfBirth} />
-
-                                <InputField label="Current Occupation" type="text" placeholder="Actress" value={profile.occupation} onChange={(v) => handleUpdate('occupation', v)} />
-                                <ReadOnlyField label="Other Occupations" value={formatStringArray(profile.otherOccupations)} />
+                                <div className="col-span-2">
+                                    <ReadOnlyField label="Last Occupation" value={profile.occupation} />
+                                </div>
+                                <div className="col-span-2">
+                                    <ReadOnlyField label="Previous Occupations" value={formatStringArray(profile.otherOccupations)} />
+                                </div>
                             </div>
                             
                             <h3 className="text-xl font-semibold mb-3 mt-6">Biography</h3>
@@ -235,7 +304,7 @@ export default function SettingsPage() {
                                 label="Short Bio" 
                                 type="text" 
                                 rows={6}
-                                placeholder="Enter a short biography of the user."
+                                placeholder="Enter a short description of yourself."
                                 value={profile.bio}
                                 onChange={(v) => handleUpdate('bio', v)}
                             />
@@ -243,7 +312,7 @@ export default function SettingsPage() {
                         
                         {/* SECTION II: INTERESTS */}
                         <section>
-                            <SectionTitle title="II. Interests & Hobbies" icon={FaHeart} />
+                            <SectionTitle title="Interests & Hobbies" icon={FaHeart} />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                                 <InputField label="Favorite Color" type="text" placeholder="Turquoise" value={profile.favColor} onChange={(v) => handleUpdate('favColor', v)} />
                                 <InputField label="Favorite Food" type="text" placeholder="Seafood" value={profile.favFood} onChange={(v) => handleUpdate('favFood', v)} />
@@ -256,18 +325,19 @@ export default function SettingsPage() {
                             </div>
                         </section>
 
-                        {/* SECTION III: FAMILY AND ENTOURAGE */}
+                        {/* SECTION III: FAMILY AND ENTOURAGE (Dynamic Lists) */}
                         <section>
-                            <SectionTitle title="III. Family & Entourage" icon={FaPeopleArrows} />
+                            <SectionTitle title="Family & Friends" icon={FaPeopleArrows} />
                             
                             <DynamicList 
                                 title="Family Members"
                                 items={profile.familyMembers || []}
                                 updateItems={updateFamilyMembers}
+                                photoKey="photoUrl"
                                 fields={[
                                     { key: 'name', label: 'Name', type: 'text', placeholder: 'Enter name' },
                                     { key: 'relationship', label: 'Relationship', type: 'text', placeholder: 'Daughter, Son, etc.' },
-                                    { key: 'photoUrl', label: 'Photo Link', type: 'text', placeholder: 'URL or path' },
+                                    { key: 'birthday', label: 'Birthday', type: 'date', placeholder: 'YYYY-MM-DD' },
                                 ]}
                                 addButtonText="Add another family member"
                             />
@@ -277,10 +347,11 @@ export default function SettingsPage() {
                                     title="Friends"
                                     items={profile.friends || []}
                                     updateItems={updateFriends}
+                                    photoKey="photoUrl"
                                     fields={[
                                         { key: 'name', label: 'Name', type: 'text', placeholder: 'Enter name' },
-                                        { key: 'connection', label: 'How known', type: 'text', placeholder: 'College, neighbor, etc.' },
-                                        { key: 'photoUrl', label: 'Photo Link', type: 'text', placeholder: 'URL or path' },
+                                        { key: 'connection', label: 'Known From', type: 'text', placeholder: 'College, neighbor, etc.' },
+                                        { key: 'birthday', label: 'Birthday', type: 'date', placeholder: 'YYYY-MM-DD' },
                                     ]}
                                     addButtonText="Add another friend"
                                 />
@@ -291,17 +362,23 @@ export default function SettingsPage() {
                         <section>
                             <SectionTitle title="IV. Medical Care & Routine" icon={FaClock} />
                             
-                            <h3 className="text-xl font-semibold mb-3">Emergency Contact & Doctor</h3>
+                            <h3 className="text-xl font-semibold mb-3">Emergency Contact</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                                <InputField type="text" placeholder="Contact Name" value={profile.emergencyContactName} onChange={(v) => handleUpdate('emergencyContactName', v)} label={''} />
-                                <InputField type="text" placeholder="Relationship" value={profile.emergencyContactRel} onChange={(v) => handleUpdate('emergencyContactRel', v)} label={''} />
-                                <InputField type="tel" placeholder="Phone Number" value={profile.emergencyContactPhone} onChange={(v) => handleUpdate('emergencyContactPhone', v)} label={''} />
-                                <InputField type="text" placeholder="Primary Care Doctor (Name & Phone)" value={profile.primaryCareDoctor} onChange={(v) => handleUpdate('primaryCareDoctor', v)} label={''} />
+                                <InputField type="text" placeholder="Name" value={profile.emergencyContactName} onChange={(v) => handleUpdate('emergencyContactName', v)} label={'Name'} />
+                                <InputField type="text" placeholder="Relationship" value={profile.emergencyContactRel} onChange={(v) => handleUpdate('emergencyContactRel', v)} label={'Relationship'} />
+                                <InputField type="tel" placeholder="Phone Number" value={profile.emergencyContactPhone} onChange={(v) => handleUpdate('emergencyContactPhone', v)} label={'Phone Number'} />
                             </div>
                             
-                            <h3 className="text-xl font-semibold mb-3">Health & MMS</h3>
-                             <InputField label="Health Conditions" type="text" rows={2} placeholder="What health conditions do you have?" value={profile.healthConditions} onChange={(v) => handleUpdate('healthConditions', v)} />
-                             <InputField label="Most Recent MMS Score" type="text" placeholder="MMS Score" value={profile.mmsScore} onChange={(v) => handleUpdate('mmsScore', v)} />
+                            <h3 className="text-xl font-semibold mb-3 mt-6">Primary Care Doctor</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                <InputField type="text" placeholder="Doctor's Name" value={profile.doctorName} onChange={(v) => handleUpdate('doctorName', v)} label={'Name'} />
+                                <InputField type="tel" placeholder="Phone Number" value={profile.doctorPhone} onChange={(v) => handleUpdate('doctorPhone', v)} label={'Phone Number'} />
+                                <InputField type="text" placeholder="Address" value={profile.doctorAddress} onChange={(v) => handleUpdate('doctorAddress', v)} label={'Address'} />
+                            </div>
+                            
+                            <h3 className="text-xl font-semibold mb-3">Health & MMSE Score</h3>
+                             <InputField label="Health Conditions" type="text" rows={2} placeholder="What current health conditions do you have?" value={profile.healthConditions} onChange={(v) => handleUpdate('healthConditions', v)} />
+                             <InputField label="Most Recent MMS Score" type="text" placeholder="MMSE Score" value={profile.mmseScore} onChange={(v) => handleUpdate('mmseScore', v)} />
 
 
                             <h3 className="text-xl font-semibold mb-3 mt-6">Medication Schedule</h3>
@@ -309,6 +386,7 @@ export default function SettingsPage() {
                                 title="Medications"
                                 items={profile.medicationList || []}
                                 updateItems={updateMedicationList}
+                                notesPlaceholder="Reason for taking, side effects, or special instructions."
                                 fields={[
                                     { key: 'name', label: 'Name', type: 'text', placeholder: 'Aspirin' },
                                     { key: 'dosage', label: 'Dosage', type: 'text', placeholder: '81mg' },
@@ -317,12 +395,18 @@ export default function SettingsPage() {
                                 addButtonText="Add another medication"
                             />
 
-                            <h3 className="text-xl font-semibold mb-3 mt-6">Basic Daily Activities</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                <label className="font-medium">Wake Up:</label>
-                                <input type="time" value={profile.wakeUpTime} onChange={(e) => handleUpdate('wakeUpTime', e.target.value)} className="p-2 border rounded-lg" />
-                                <label className="font-medium">Shower:</label>
-                                <input type="time" value={profile.showerTime} onChange={(e) => handleUpdate('showerTime', e.target.value)} className="p-2 border rounded-lg" />
+                            <h3 className="text-xl font-semibold mb-3 mt-6">Daily Schedule Preferences</h3>
+                            <div className="flex flex-col gap-4">
+                                
+                                <div className="flex items-center gap-4">
+                                    <label className="font-medium w-32">Wake Up Time:</label>
+                                    <input type="time" value={profile.wakeUpTime} onChange={(e) => handleUpdate('wakeUpTime', e.target.value)} className="p-2 border rounded-lg w-24" />
+                                </div>
+                                
+                                <div className="flex items-center gap-4">
+                                    <label className="font-medium w-32">Shower Time:</label>
+                                    <input type="time" value={profile.showerTime} onChange={(e) => handleUpdate('showerTime', e.target.value)} className="p-2 border rounded-lg w-24" />
+                                </div>
                             </div>
                         </section>
 

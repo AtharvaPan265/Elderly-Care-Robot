@@ -127,17 +127,17 @@ const DailySchedulePanel: React.FC = () => {
                                 </li>
                             ))
                         ) : (
-                            <li className="text-gray-500 text-sm italic">No medication due today.</li>
+                            <li className="text-gray-500 text-sm italic">No medications to take today.</li>
                         )}
                     </ul>
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-md border border-blue-100 flex flex-col justify-between">
                     <h3 className={`text-lg font-bold mb-3 flex items-center text-[${BLUE_ACCENT}]`}>
-                        <GiAce className="mr-2" /> Daily Game
+                        <GiAce className="mr-2" /> Daily Game Suggestion
                     </h3>
                     {randomGame ? (
                         <>
-                            <p className="text-sm mb-3">Today's suggestion: **{randomGame.title}**.</p>
+                            <p className="text-sm mb-3">Play: {randomGame.title}.</p>
                             <Link href={randomGame.href} className={`text-center bg-blue-100...`}>
                                 Start Puzzle
                             </Link>
@@ -148,11 +148,11 @@ const DailySchedulePanel: React.FC = () => {
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-md border border-orange-100 flex flex-col justify-between">
                     <h3 className={`text-lg font-bold mb-3 flex items-center`}>
-                        <GiPhotoCamera className="mr-2" /> Daily Album
+                        <GiPhotoCamera className="mr-2" /> Daily Album Suggestion
                     </h3>
                     {randomAlbum ? (
                         <>
-                            <p className="text-sm mb-3">View your **{randomAlbum}** collection today!</p>
+                            <p className="text-sm mb-3">View your {randomAlbum} album today!</p>
                             <Link href={`/memories?collection=${randomAlbum}`} className={`text-center bg-orange-100...`}>
                                 See Memories
                             </Link>
