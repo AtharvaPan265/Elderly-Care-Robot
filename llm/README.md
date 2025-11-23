@@ -30,7 +30,7 @@ uv add -r requirements.txt
 
 # Running Langraph API
 
-Once the Enviroment is setup create a `.env` file and fill the following fields witht teh api keys
+Once the Enviroment is setup create a `.env` file and fill the following fields witht the api keys
 ```
 GOOGLE_API_KEY=
 TAVILY_API_KEY=
@@ -41,3 +41,14 @@ then you can run the langraph server in your terminal
 ```sh
 langraph dev
 ```
+
+# Using the js funcitons
+
+you should be able to use the javascript funcitons to chat with the LLM, an example of it would be in `langgraph-test/chat_test.js`
+You need to install the langraph-sdk
+
+```sh
+npm install @langchain/langgraph-sdk
+```
+
+If you want to ask gpt for modifictations etc. make sure you specify that the langraph api is hosted via `langraph dev`
