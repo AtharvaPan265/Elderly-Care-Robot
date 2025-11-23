@@ -40,10 +40,17 @@ llm_with_tools = llm.bind_tools(tools)
 
 def chat_node(state: ChatState):
     """Process messages with Gemini."""
-    messages = [get_system_message()] + list(state["messages"])
-    # Use llm_with_tools instead of llm
+    
+    # FORCE READ: Access the history to ensure it loads from the DB
+    # We assign it to a variable (even if unused) to force evaluation.
+    current_history = state["messages"] 
+    _ = len(current_history)  # This acts just like the print statement!
+
+    messages = [get_system_message()] + list(current_history)
     response = llm_with_tools.invoke(messages)
     return {"messages": [response]}
+
+
 
 # Create the graph
 workflow = StateGraph(ChatState)
