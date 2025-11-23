@@ -1,6 +1,6 @@
 # Setup
 
-**Instructions using pip**
+**Instructions using `pip`**
 1. make a venv in `./LLM`
 ```sh
 python3 -m venv .venv
@@ -14,7 +14,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**Instructions using uv**
+**Instructions using `uv`**
 1. create the venv 
 ```sh
 uv venv --python 3.11
