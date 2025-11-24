@@ -44,7 +44,7 @@ langraph dev
 
 # JavaScript Functions
 
-you should be able to use the javascript funcitons to chat with the LLM, an example of it would be in `langgraph-test/chat_test.js`
+you should be able to use the javascript funcitons to chat with the LLM, an example of it would be in `langgraph-test/comprehensive_agent_test.js`
 You need to install the langraph-sdk
 
 ```sh
