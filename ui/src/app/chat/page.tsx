@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { IoIosArrowBack } from 'react-icons/io';
 import { GiConversation } from 'react-icons/gi';
 import { FaPaperPlane, FaUserCircle } from 'react-icons/fa';
+import {createThread, sendMessage} from './llmClient.js'
 
 // import { useUserProfile } from '@/utils/useUserProfile';
 
@@ -30,6 +31,34 @@ export default function ChatPage() {
     }, [messages]);
 
     
+        const [threadId, setThreadId] = useState<string | null>(null);
+
+        useEffect(() => {
+            let mounted = true;
+            const initThread = async () => {
+                try {
+                    setIsLoading(true);
+                    const res = await createThread();
+                    if (!mounted) return;
+                    if (typeof res === 'string') {
+                        setThreadId(res);
+                    } else if (res && typeof res === 'object' && 'threadId' in res) {
+                        setThreadId((res as any).threadId);
+                    } else {
+                        console.warn('createThread returned unexpected value:', res);
+                    }
+                } catch (err) {
+                    console.error('createThread failed', err);
+                } finally {
+                    if (mounted) setIsLoading(false);
+                }
+            };
+
+            initThread();
+            return () => {
+                mounted = false;
+            };
+        }, []);
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
@@ -41,9 +70,58 @@ export default function ChatPage() {
         setIsLoading(true);
 
         // call LLM API endpoint
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // ensure we have a thread id (create one if needed)
+        let effectiveThreadId = threadId;
+        if (!effectiveThreadId) {
+            try {
+            const newThread = await createThread();
+            if (typeof newThread === 'string') {
+                effectiveThreadId = newThread;
+                setThreadId(newThread);
+            } else if (newThread && typeof newThread === 'object' && 'threadId' in newThread) {
+                effectiveThreadId = (newThread as any).threadId;
+                setThreadId(effectiveThreadId);
+            }
+            } catch (err) {
+            console.error('createThread failed inside send flow', err);
+            }
+        }
 
-        const llmResponseText = `Hello, ${/* profile.name || */ 'Tippi'}. I am ready to chat! You asked about ${userMessage.text}.`;
+        // send the message
+        let sendResponse: any = undefined;
+        try {
+            if (!effectiveThreadId) throw new Error('no thread id available');
+            sendResponse = await sendMessage(String(effectiveThreadId), userMessage.text);
+            // if sendMessage returns/updates a threadId, persist it
+            if (sendResponse && typeof sendResponse === 'object' && 'threadId' in sendResponse) {
+            setThreadId((sendResponse as any).threadId);
+            }
+        } catch (err) {
+            console.error('sendMessage failed', err);
+            sendResponse = undefined;
+        }
+
+        // normalize response text
+        let llmResponseText = 'Sorry, I could not reach the assistant right now.';
+        if (sendResponse != null) {
+            if (typeof sendResponse === 'string') {
+            llmResponseText = sendResponse;
+            } else if (typeof sendResponse === 'object') {
+            if (typeof (sendResponse as any).text === 'string') {
+                llmResponseText = (sendResponse as any).text;
+            } else if (typeof (sendResponse as any).message === 'string') {
+                llmResponseText = (sendResponse as any).message;
+            } else {
+                try {
+                llmResponseText = JSON.stringify(sendResponse);
+                } catch {
+                llmResponseText = String(sendResponse);
+                }
+            }
+            } else {
+            llmResponseText = String(sendResponse);
+            }
+        }
         
         const assistantMessage: Message = {
             id: Date.now() + 1,
