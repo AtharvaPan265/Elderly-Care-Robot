@@ -51,3 +51,51 @@ export async function sendMessage(threadId, userMessage) {
   // Handle cases where content might be an array (e.g. multimodal)
   return JSON.stringify(lastMessage.content);
 }
+
+/**
+ * Sends a single message to the agent without creating a persistent thread.
+ * Useful for one-off tasks like summarization or extraction.
+ * 
+ * @param {string} userMessage - The text content of the user's message.
+ * @returns {Promise<string>} The text content of the agent's response.
+ */
+export async function sendStatelessMessage(userMessage) {
+  // We use 'stream' instead of 'wait' here because 'wait' on a null thread
+  // doesn't give us an easy way to fetch the final state afterwards 
+  // (since there is no thread_id to query).
+  
+  const stream = client.runs.stream(
+    null, // <--- Passing null means "no persistent thread"
+    ASSISTANT_ID,
+    {
+      input: {
+        messages: [
+          { role: "user", content: userMessage },
+        ],
+      },
+      streamMode: "values", // 'values' gives us the full state at each step
+    }
+  );
+
+  let finalResponse = "";
+
+  for await (const chunk of stream) {
+    // Look for the 'values' event which contains the state
+    if (chunk.event === "values" && chunk.data.messages) {
+      const messages = chunk.data.messages;
+      const lastMessage = messages[messages.length - 1];
+
+      // Check if the last message is from the AI
+      if (lastMessage.type === "ai" || lastMessage.role === "assistant") {
+        // Update our final response variable
+        if (typeof lastMessage.content === 'string') {
+          finalResponse = lastMessage.content;
+        } else {
+          finalResponse = JSON.stringify(lastMessage.content);
+        }
+      }
+    }
+  }
+
+  return finalResponse;
+}
