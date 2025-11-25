@@ -4,10 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { IoIosArrowBack } from 'react-icons/io';
 import { GiConversation } from 'react-icons/gi';
-import { FaPaperPlane, FaUserCircle } from 'react-icons/fa';
-import {createThread, sendMessage} from './llmClient.js'
-
-// import { useUserProfile } from '@/utils/useUserProfile';
+import { FaPaperPlane, FaUserCircle, FaMicrophone, FaStop } from 'react-icons/fa';
+import { createThread, sendMessage } from './llmClient.js';
 
 const PARCHMENT_LIGHT = '#f5f5e0';
 const BLUE_ACCENT = '#87ceeb';
@@ -20,45 +18,118 @@ interface Message {
 }
 
 export default function ChatPage() {
-    // const { profile } = useUserProfile();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    
+    // --- Audio State ---
+    const [isRecording, setIsRecording] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Scroll to bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    
-        const [threadId, setThreadId] = useState<string | null>(null);
+    // --- Thread Initialization ---
+    const [threadId, setThreadId] = useState<string | null>(null);
 
-        useEffect(() => {
-            let mounted = true;
-            const initThread = async () => {
-                try {
-                    setIsLoading(true);
-                    const res = await createThread();
-                    if (!mounted) return;
-                    if (typeof res === 'string') {
-                        setThreadId(res);
-                    } else if (res && typeof res === 'object' && 'threadId' in res) {
-                        setThreadId((res as any).threadId);
-                    } else {
-                        console.warn('createThread returned unexpected value:', res);
-                    }
-                } catch (err) {
-                    console.error('createThread failed', err);
-                } finally {
-                    if (mounted) setIsLoading(false);
+    useEffect(() => {
+        let mounted = true;
+        const initThread = async () => {
+            try {
+                setIsLoading(true);
+                const res = await createThread();
+                if (!mounted) return;
+                if (typeof res === 'string') {
+                    setThreadId(res);
+                } else if (res && typeof res === 'object' && 'threadId' in res) {
+                    setThreadId((res as any).threadId);
+                } else {
+                    console.warn('createThread returned unexpected value:', res);
                 }
+            } catch (err) {
+                console.error('createThread failed', err);
+            } finally {
+                if (mounted) setIsLoading(false);
+            }
+        };
+
+        initThread();
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    // --- Audio Logic ---
+    const handleStartRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            const chunks: BlobPart[] = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunks.push(e.data);
             };
 
-            initThread();
-            return () => {
-                mounted = false;
+            mediaRecorder.onstop = async () => {
+                // Convert chunks to a single audio file
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                const file = new File([blob], "audio.webm", { type: 'audio/webm' });
+                
+                // Send to API
+                await handleTranscribe(file);
+                
+                // Cleanup: Stop all tracks to release microphone
+                stream.getTracks().forEach(track => track.stop());
             };
-        }, []);
+
+            mediaRecorder.start();
+            setIsRecording(true);
+        } catch (err) {
+            console.error("Error accessing microphone:", err);
+            alert("Could not access microphone. Please allow permissions.");
+        }
+    };
+
+    const handleStopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            setIsTranscribing(true);
+        }
+    };
+
+    const handleTranscribe = async (file: File) => {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch("/api/transcribe", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await response.json();
+            
+            if (data.text) {
+                // Append transcribed text to existing input or set it if empty
+                setInput((prev) => (prev ? `${prev} ${data.text}` : data.text));
+            } else if (data.error) {
+                console.error("Transcription API error:", data.error);
+            }
+        } catch (error) {
+            console.error("Transcription network failed", error);
+        } finally {
+            setIsTranscribing(false);
+        }
+    };
+
+    // --- Chat Logic ---
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
@@ -69,57 +140,55 @@ export default function ChatPage() {
         setInput('');
         setIsLoading(true);
 
-        // call LLM API endpoint
-        // ensure we have a thread id (create one if needed)
+        // Ensure we have a thread id (create one if needed)
         let effectiveThreadId = threadId;
         if (!effectiveThreadId) {
             try {
-            const newThread = await createThread();
-            if (typeof newThread === 'string') {
-                effectiveThreadId = newThread;
-                setThreadId(newThread);
-            } else if (newThread && typeof newThread === 'object' && 'threadId' in newThread) {
-                effectiveThreadId = (newThread as any).threadId;
-                setThreadId(effectiveThreadId);
-            }
+                const newThread = await createThread();
+                if (typeof newThread === 'string') {
+                    effectiveThreadId = newThread;
+                    setThreadId(newThread);
+                } else if (newThread && typeof newThread === 'object' && 'threadId' in newThread) {
+                    effectiveThreadId = (newThread as any).threadId;
+                    setThreadId(effectiveThreadId);
+                }
             } catch (err) {
-            console.error('createThread failed inside send flow', err);
+                console.error('createThread failed inside send flow', err);
             }
         }
 
-        // send the message
+        // Send the message
         let sendResponse: any = undefined;
         try {
             if (!effectiveThreadId) throw new Error('no thread id available');
             sendResponse = await sendMessage(String(effectiveThreadId), userMessage.text);
-            // if sendMessage returns/updates a threadId, persist it
             if (sendResponse && typeof sendResponse === 'object' && 'threadId' in sendResponse) {
-            setThreadId((sendResponse as any).threadId);
+                setThreadId((sendResponse as any).threadId);
             }
         } catch (err) {
             console.error('sendMessage failed', err);
             sendResponse = undefined;
         }
 
-        // normalize response text
+        // Normalize response text
         let llmResponseText = 'Sorry, I could not reach the assistant right now.';
         if (sendResponse != null) {
             if (typeof sendResponse === 'string') {
-            llmResponseText = sendResponse;
+                llmResponseText = sendResponse;
             } else if (typeof sendResponse === 'object') {
-            if (typeof (sendResponse as any).text === 'string') {
-                llmResponseText = (sendResponse as any).text;
-            } else if (typeof (sendResponse as any).message === 'string') {
-                llmResponseText = (sendResponse as any).message;
-            } else {
-                try {
-                llmResponseText = JSON.stringify(sendResponse);
-                } catch {
-                llmResponseText = String(sendResponse);
+                if (typeof (sendResponse as any).text === 'string') {
+                    llmResponseText = (sendResponse as any).text;
+                } else if (typeof (sendResponse as any).message === 'string') {
+                    llmResponseText = (sendResponse as any).message;
+                } else {
+                    try {
+                        llmResponseText = JSON.stringify(sendResponse);
+                    } catch {
+                        llmResponseText = String(sendResponse);
+                    }
                 }
-            }
             } else {
-            llmResponseText = String(sendResponse);
+                llmResponseText = String(sendResponse);
             }
         }
         
@@ -190,19 +259,38 @@ export default function ChatPage() {
                 </div>
                 
                 {/* 2. Input Form */}
-                <form onSubmit={handleSendMessage} className="flex flex-shrink-0">
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Type your message here..."
-                        className="flex-grow p-3 border-2 border-gray-300 rounded-l-xl shadow-inner focus:border-blue-500 outline-none"
-                        disabled={isLoading}
-                    />
+                <form onSubmit={handleSendMessage} className="flex flex-shrink-0 items-center gap-2">
+                    
+                    {/* Microphone Button */}
+                    <button
+                        type="button"
+                        onClick={isRecording ? handleStopRecording : handleStartRecording}
+                        disabled={isLoading || isTranscribing}
+                        className={`p-3 rounded-full font-bold transition flex items-center justify-center shadow-md ${
+                            isRecording 
+                            ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse' 
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }`}
+                        title={isRecording ? "Stop Recording" : "Start Recording"}
+                    >
+                        {isRecording ? <FaStop size={20} /> : <FaMicrophone size={20} />}
+                    </button>
+
+                    <div className="relative flex-grow">
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder={isTranscribing ? "Transcribing audio..." : "Type your message here..."}
+                            className="w-full p-3 border-2 border-gray-300 rounded-xl shadow-inner focus:border-blue-500 outline-none"
+                            disabled={isLoading || isTranscribing}
+                        />
+                    </div>
+
                     <button
                         type="submit"
-                        className={`bg-[${BLUE_ACCENT}] text-white px-6 rounded-r-xl font-bold transition hover:bg-sky-500 flex items-center justify-center`}
-                        disabled={isLoading}
+                        className={`bg-[${BLUE_ACCENT}] text-white p-3 rounded-xl font-bold transition hover:bg-sky-500 flex items-center justify-center shadow-md`}
+                        disabled={isLoading || isTranscribing}
                     >
                         <FaPaperPlane size={20} />
                     </button>
