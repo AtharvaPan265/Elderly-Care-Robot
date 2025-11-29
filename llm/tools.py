@@ -43,7 +43,8 @@ def write_to_daily_file(text, directory_path="./src/data/logs") -> str:
         # If file is new, write the date header first
         if not file_exists:
             f.write(f"=== Log for {today} ===\n\n")
-        f.write(text + "\n")
+        f.write(f"[{datetime.now().strftime('%H:%M:%S')}] {text}\n")
+        f.flush()
     
     # Return information about what was done
     action = " Appended to existing" if file_exists else "Created new"
