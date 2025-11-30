@@ -207,7 +207,7 @@ export default function ChatPage() {
             
             <div className="w-full max-w-4xl bg-white p-8 rounded-3xl shadow-2xl flex flex-col h-[90vh]">
                 
-                <Link href="/" className="text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition flex-shrink-0">
+                <Link href="/dash" className="text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition flex-shrink-0">
                     <IoIosArrowBack size={24} className="mr-1" />
                     Back to Dashboard
                 </Link>
