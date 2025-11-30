@@ -252,7 +252,7 @@ export default function SettingsPage() {
         <div className="bg-[#e0f7fa] min-h-screen p-6 md:p-10 flex justify-center">
             <div className="w-full max-w-5xl bg-white p-8 rounded-3xl shadow-2xl">
                 
-                <Link href="/" className="text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition">
+                <Link href="/dash" className="text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition">
                     <IoIosArrowBack size={24} className="mr-1" />
                     Back to Dashboard
                 </Link>

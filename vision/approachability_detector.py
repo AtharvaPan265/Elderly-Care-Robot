@@ -34,9 +34,11 @@ import cv2
 import numpy as np
 import mediapipe as mp
 import math
-from fer import FER
+from fer.fer import FER
 from collections import deque, Counter
 
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 # ======================================================================
 # HELPER FUNCTIONS
@@ -258,6 +260,7 @@ class ApproachabilityDetector:
                 score -= 1.5
                 feedback.append("Hands near face → busy")
 
+
         # ---------------------------------------------------------------
         # Gesture Recognition
         # ---------------------------------------------------------------
@@ -281,13 +284,28 @@ class ApproachabilityDetector:
         self.score_history.append(score)
         smoothed = np.mean(self.score_history)
 
+        # Check if person is actually detected
+        person_detected = (pose_res.pose_landmarks is not None)
+        face_detected = (output["emotion"] is not None)
+
         busy_flag = any("busy" in fb or "talking" in fb for fb in feedback)
-        approachable = (smoothed > 0.2 and not busy_flag)
+
+        # Only approachable if person is in frame
+        approachable = (
+            smoothed > 0.2 and 
+            not busy_flag and 
+            person_detected and 
+            face_detected
+        )
+
+        # Add to feedback
+        if not person_detected:
+            feedback.append("No person detected")
 
         # ---------------------------------------------------------------
         # Final Output Assembly
         # ---------------------------------------------------------------
-        output["approachable"] = approachable
+        output["approachable"] = bool(approachable)  # ← Convert numpy.bool_ to Python bool
         output["score"] = float(smoothed)
         output["feedback"] = feedback
 
@@ -296,6 +314,8 @@ class ApproachabilityDetector:
 
         return output
 
+        
+
     # ==================================================================
     def get_state(self):
         """Return current temporal smoothing state—useful for API debugging."""
@@ -303,7 +323,13 @@ class ApproachabilityDetector:
             "score_history": list(self.score_history),
             "emotion_history": list(self.emotion_history)
         }
-'''
+
+    def reset(self):
+        """Reset temporal state for new session"""
+        self.score_history.clear()
+        self.emotion_history.clear()
+        self.prev_pose = None
+
 if __name__ == "__main__":
     detector = ApproachabilityDetector()
 
@@ -381,4 +407,3 @@ if __name__ == "__main__":
 
     cap.release()
     cv2.destroyAllWindows()
-'''
