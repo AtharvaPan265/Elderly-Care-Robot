@@ -1,4 +1,4 @@
-'use client'; 
+'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { GiWalkingBoot, GiAce, GiCalendar, GiVibratingSmartphone, GiConversation, GiPhotoCamera } from 'react-icons/gi';
@@ -9,7 +9,7 @@ import { IconType } from 'react-icons';
 import { useUserWeather } from '@/utils/weather';
 import { useUserProfile } from '@/utils/userProfile';
 import { collectionNames } from '@/app/data/memoriesData';
-import { getDailyMedicationTasks } from '@/app/calendar/page'; 
+import { getDailyMedicationTasks } from '@/app/calendar/page';
 import { usePersistentEvents } from '../api/mcp/route';
 
 const ORANGE_ACCENT = '#ffb573';
@@ -19,9 +19,9 @@ const PARCHMENT_LIGHT = '#f5f5e0';
 const PARCHMENT_DARKER = '#eee2d0';
 
 const getGreeting = (hour: number): string => {
-  if (hour < 12) return "Good Morning";
-  if (hour < 18) return "Good Afternoon";
-  return "Good Evening";
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
 };
 
 interface ActionButtonProps {
@@ -35,7 +35,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ label, bgColor, Icon, href 
     const isParchment = bgColor.includes(PARCHMENT_DARKER);
 
     return (
-        <Link 
+        <Link
             href={href}
             className={`
                 flex items-center justify-start gap-4 p-4 rounded-xl 
@@ -57,7 +57,7 @@ const DailySchedulePanel: React.FC = () => {
     const today = new Date();
 
     const dailyEventsSorted = useMemo(() => {
-        const todayDateString = today.toDateString(); 
+        const todayDateString = today.toDateString();
         return events
             .filter(event => event.date.toDateString() === todayDateString)
             .sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -111,7 +111,7 @@ const DailySchedulePanel: React.FC = () => {
                             dailyMedicationTasks.map(task => (
                                 <li key={task.taskId} className="flex justify-between items-center text-sm">
                                     <span className="text-lg">{task.title}</span>
-                                    <button 
+                                    <button
                                         onClick={() => toggleMedicationCheck(task.medId)}
                                         className={`p-1 rounded-full transition ${task.isChecked ? 'bg-green-100 text-green-600' : 'border border-gray-300 text-gray-500 hover:bg-gray-100'}`}
                                         title="Check off medication"
@@ -137,7 +137,7 @@ const DailySchedulePanel: React.FC = () => {
                             </Link>
                         </>
                     ) : (
-                            <p className="text-sm">Loading game suggestion...</p>
+                        <p className="text-sm">Loading game suggestion...</p>
                     )}
                 </div>
                 <div className="bg-white p-4 rounded-xl shadow-md border border-orange-100 flex flex-col justify-between">
@@ -164,7 +164,7 @@ export default function HomePage() {
     const [isMounted, setIsMounted] = useState(false);
     const { profile, toggleMedicationCheck } = useUserProfile();
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
-    const { main, temp, error, loading, CurrentIcon } = useUserWeather(); 
+    const { main, temp, error, loading, CurrentIcon } = useUserWeather();
 
     useEffect(() => {
         setIsMounted(true);
@@ -176,14 +176,14 @@ export default function HomePage() {
         return () => clearInterval(timerId);
     }, []);
 
-    const dateStr = currentTime 
+    const dateStr = currentTime
         ? currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
         : 'Loading Date...';
-        
-    const timeStr = currentTime 
+
+    const timeStr = currentTime
         ? currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
         : '00:00';
-        
+
     const currentHour = currentTime ? currentTime.getHours() : 12;
 
     const greeting = getGreeting(currentHour) + ' ' + profile.nickname + '!';
@@ -206,14 +206,14 @@ export default function HomePage() {
                                     <p className="text-red-500 text-xs text-center max-w-[100px]">{error.split(':')[0]}</p>
                                 ) : (
                                     <>
-                                        <CurrentIcon size={50} className="text-gray-700" title={main} /> 
+                                        <CurrentIcon size={50} className="text-gray-700" title={main} />
                                         <p className="text-3xl font-bold mt-1">{temp}°F</p>
                                         <p className="text-lg capitalize">{main}</p>
                                     </>
                                 )}
                             </div>
                         </div>
-                        
+
                         <h1 className="text-5xl font-extrabold text-gray-900 mt-2">
                             {isLoaded ? greeting : 'Hello!'}
                         </h1>
@@ -222,14 +222,16 @@ export default function HomePage() {
                         <ActionButton label="Play Games" bgColor={`bg-[${GREEN_ACCENT}]`} Icon={GiAce} href="/games" />
                         <ActionButton label="Check Calendar" bgColor={`bg-[${BLUE_ACCENT}]`} Icon={GiCalendar} href="/calendar" />
                         <ActionButton label="View Memories" bgColor={`bg-[${ORANGE_ACCENT}]`} Icon={GiPhotoCamera} href="/memories" />
+                        <ActionButton label="Chat With Me" bgColor={`bg-[#202A44]`} Icon={GiConversation} href="/chat" />
+
                     </div>
                 </div>
                 <div className="w-full">
                     <DailySchedulePanel />
                 </div>
             </div>
-            <Link 
-                href="/settings" 
+            <Link
+                href="/settings"
                 className="absolute top-6 right-6 flex flex-col items-center cursor-pointer hover:text-blue-600 transition"
             >
                 <FaUserCircle size={60} />
