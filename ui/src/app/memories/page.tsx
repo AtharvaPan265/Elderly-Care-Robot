@@ -79,19 +79,19 @@ const MemoryCard: React.FC<MemoryCardProps> = ({ memory, imageHeightClass = 'h-6
                 )}
             </div>
             <div className="p-4">
-                <h3 className="text-xl font-extrabold text-gray-900 mb-2">{memory.title}</h3>
-                <p className="text-gray-700 text-sm mb-3 italic line-clamp-3">{memory.caption}</p>
+                <h3 className="text-2xl font-extrabold text-gray-900 mb-2">{memory.title}</h3>
+                <p className="text-gray-700 text-lg mb-3 italic line-clamp-3">{memory.caption}</p>
                 <div className="flex flex-wrap gap-2 mt-3">
-                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {memory.collection || 'Unsorted'}
+                    <span className="px-3 py-1 text-lg font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {memory.album || 'Unsorted'}
                     </span>
-                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                    <span className="px-3 py-1 text-lg font-semibold rounded-full bg-purple-100 text-purple-800">
                         {memory.type}
                     </span>
                 </div>
                 <div className="mt-4 pt-3 border-t border-gray-100">
-                    <p className="text-xs font-semibold text-gray-500 mb-1">Tags:</p>
-                    <p className="text-xs text-gray-600 space-y-1">
+                    <p className="text-lg font-semibold text-gray-500 mb-1">Tags:</p>
+                    <p className="text-lg text-gray-600 space-y-1">
                         {tags.map((tag, i) => (
                             <span key={i} className="block">{tag}</span>
                         ))}
@@ -160,9 +160,9 @@ const CollectionsView: React.FC<{ setCollection: (c: MemoryCollection) => void, 
     const albums = collectionNames.filter(name => name !== 'All');
     const getCount = (album: MemoryCollection) => {
         if (album === 'Unsorted') {
-            return memories.filter(m => !m.collection).length;
+            return memories.filter(m => !m.album).length;
         }
-        return memories.filter(m => m.collection === album).length;
+        return memories.filter(m => m.album === album).length;
     };
 
     return (
@@ -181,8 +181,8 @@ const CollectionsView: React.FC<{ setCollection: (c: MemoryCollection) => void, 
                     `}
                 >
                     <FaFolderOpen size={32} className="mb-2" />
-                    <span className="text-lg">{album}</span>
-                    <span className="text-sm font-normal mt-1">
+                    <span className="text-xl">{album}</span>
+                    <span className="text-lg font-normal mt-1">
                         ({getCount(album)} items)
                     </span>
                 </button>
@@ -196,13 +196,11 @@ export default function MemoriesPage() {
     const [currentCollection, setCurrentCollection] = useState<MemoryCollection>('All');
     const [searchTerm, setSearchTerm] = useState('');
     const filteredMemories = memories.filter(m => {
-        // Filter by collection first
         if (currentCollection === 'All') {
-            // No collection filter
         } else if (currentCollection === 'Unsorted') {
-            if (m.collection) return false;
+            if (m.album) return false;
         } else {
-            if (m.collection !== currentCollection) return false;
+            if (m.album !== currentCollection) return false;
         }
 
         if (!searchTerm) return true;
@@ -228,7 +226,7 @@ export default function MemoriesPage() {
     return (
         <div className="bg-[#e0f7fa] min-h-screen p-6 md:p-10 flex justify-center">
             <div className="w-full max-w-6xl bg-white p-8 rounded-3xl shadow-2xl">
-                <Link href="/dash" className="text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition">
+                <Link href="/dash" className="text-2xl text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition">
                     <IoIosArrowBack size={24} className="mr-1" />
                     Back to Dashboard
                 </Link>
@@ -236,7 +234,7 @@ export default function MemoriesPage() {
                     <FaRegImages size={36} className="mr-3 text-[#ffb573]" />
                     My Memories
                 </h1>
-                <p className="text-lg text-gray-700 mb-6">
+                <p className="text-xl text-gray-700 mb-6">
                     Your most cherished memories.
                 </p>
                 <input
@@ -254,7 +252,7 @@ export default function MemoriesPage() {
                     </div>
                     {viewMode !== 'collections' && (
                         <div className="relative flex items-center">
-                            <label className="text-sm font-semibold text-gray-700 mr-2">Album:</label>
+                            <label className="text-lg font-semibold text-gray-700 mr-2">Album:</label>
                             <select
                                 value={currentCollection}
                                 onChange={(e) => setCurrentCollection(e.target.value as MemoryCollection)}

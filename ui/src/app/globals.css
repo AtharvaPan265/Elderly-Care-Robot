@@ -3,3 +3,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.huge-calendar.react-calendar {
+    width: 700px !important;
+    max-width: none !important;
+    font-size: 1.4rem;
+}
+
+.huge-calendar .react-calendar__tile {
+    padding: 1.6rem 0.5rem !important;
+    height: 80px !important;
+    font-size: 1.4rem !important;
+}
+
+.huge-calendar .react-calendar__month-view__weekdays {
+    font-size: 1.4rem !important;
+}
+
+.huge-calendar .react-calendar__navigation button {
+    font-size: 1.6rem !important;
+    padding: 1rem !important;
+}
+
