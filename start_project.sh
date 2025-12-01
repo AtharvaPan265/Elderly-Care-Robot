@@ -5,7 +5,7 @@
 tmux new-session -d -s llm
 tmux send-keys -t llm "cd llm" C-m
 tmux send-keys -t llm "source .venv/bin/activate" C-m
-tmux send-keys -t llm "langgraph dev" C-m
+tmux send-keys -t llm "langgraph dev --no-browser" C-m
 echo "Started session: llm"
 
 # 2. Vision Session
@@ -35,4 +35,6 @@ echo "------------------------------------------------"
 echo "All sessions initialized."
 echo "Use 'tmux attach -t [session_name]' to view logs."
 tmux list-sessions
-
+echo "Opening Web App in Browser"
+xdg-open http://localhost:3000 > /dev/null 2>&1 &
+echo "End all sessions using 'tmux kill-session -a'"
