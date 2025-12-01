@@ -133,7 +133,7 @@ const DynamicList: React.FC<DynamicListProps> = ({ title, items, updateItems, fi
 
     return (
         <div className="space-y-3 pt-2">
-             <h3 className="text-xl font-semibold mb-3">{title}</h3>
+             <h3 className="text-2xl font-semibold mb-3">{title}</h3>
             {items.map(item => (
                 <div key={item.id} className={`bg-gray-50 p-3 rounded-lg flex flex-col md:flex-row gap-3 items-start border border-gray-200`}>
                     
@@ -252,12 +252,12 @@ export default function SettingsPage() {
         <div className="bg-[#e0f7fa] min-h-screen p-6 md:p-10 flex justify-center">
             <div className="w-full max-w-5xl bg-white p-8 rounded-3xl shadow-2xl">
                 
-                <Link href="/dash" className="text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition">
+                <Link href="/dash" className="text-xl text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition">
                     <IoIosArrowBack size={24} className="mr-1" />
                     Back to Dashboard
                 </Link>
 
-                <h1 className="text-4xl font-extrabold text-gray-900 mb-8 border-b-2 border-blue-100 pb-3">My Profile</h1>
+                <h1 className="text-5xl font-extrabold text-gray-900 mb-8 border-b-2 border-blue-100 pb-3">My Profile</h1>
 
                 {!isReady ? (
                     <div className="p-20 text-center text-xl text-gray-500">
@@ -378,7 +378,7 @@ export default function SettingsPage() {
                             
                             <h3 className="text-xl font-semibold mb-3">Health & MMSE Score</h3>
                              <InputField label="Health Conditions" type="text" rows={2} placeholder="What current health conditions do you have?" value={profile.healthConditions} onChange={(v) => handleUpdate('healthConditions', v)} />
-                             <InputField label="Most Recent MMS Score" type="text" placeholder="MMSE Score" value={profile.mmseScore} onChange={(v) => handleUpdate('mmseScore', v)} />
+                             <InputField label="Most Recent MMSE Score" type="text" placeholder="MMSE Score" value={profile.mmseScore} onChange={(v) => handleUpdate('mmseScore', v)} />
 
 
                             <h3 className="text-xl font-semibold mb-3 mt-6">Medication Schedule</h3>

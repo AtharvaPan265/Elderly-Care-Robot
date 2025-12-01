@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css'; 
 import { IoIosArrowBack, IoIosClose, IoIosSave } from 'react-icons/io';
-import { FaRegCalendarAlt, FaPlusCircle, FaPills, FaUserMd, FaTrashAlt, FaCheckSquare, FaStickyNote } from 'react-icons/fa';
+import { FaRegCalendarAlt, FaPlusCircle, FaPills, FaUserMd, FaTrashAlt, FaStickyNote, FaCheckCircle } from 'react-icons/fa';
 
 import { useUserProfile } from '@/utils/userProfile';
 import { Medication } from '@/app/data/profileData';
@@ -201,68 +201,68 @@ export default function CalendarPage() {
     return (
         <div className="bg-[#e0f7fa] min-h-screen p-6 md:p-10 flex justify-center">
             <div className="w-full max-w-6xl bg-white p-8 rounded-3xl shadow-2xl">
-                <Link href="/dash" className="text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition">
+                <Link href="/dash" className="text-2xl text-gray-700 hover:text-gray-900 flex items-center mb-8 font-semibold transition">
                     <IoIosArrowBack size={24} className="mr-1" />
                     Back to Dashboard
                 </Link>
-                <h1 className="text-4xl font-extrabold text-gray-900 mb-8 border-b-2 border-blue-200 pb-3 flex items-center">
+                <h1 className="text-5xl font-extrabold text-gray-900 mb-8 border-b-2 border-blue-200 pb-3 flex items-center">
                     <FaRegCalendarAlt size={36} className={`mr-3 text-[${BLUE_ACCENT}]`} />
                     My Calendar & Appointments
                 </h1>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="p-4 bg-gray-50 rounded-xl shadow-lg">
-                            <Calendar 
-                                onChange={onCalendarChange} 
-                                value={calendarValue} 
-                                className="w-full border-0 rounded-lg shadow-inner"
+                        <div className="p-2 bg-gray-50 rounded-xl shadow-lg">
+                            <Calendar
+                                onChange={onCalendarChange}
+                                value={calendarValue}
+                                className="huge-calendar w-full border-0 rounded-lg shadow-inner"
                                 tileContent={tileContent}
-                                onClickDay={handleTileClick} 
+                                onClickDay={handleTileClick}
                                 minDetail="month"
                             />
                         </div>
                         <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-                            <h2 className="text-xl font-extrabold mb-4 border-b pb-2 text-gray-800">
+                            <h2 className="text-3xl font-extrabold mb-4 border-b pb-2 text-gray-800">
                                 Details for: {selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </h2>
-                            <h3 className="font-bold text-base mb-2 text-orange-500 flex items-center"><FaPills className="mr-2" /> Medications</h3>
+                            <h2 className="text-2xl font-bold mb-2 text-orange-500 flex items-center"><FaPills className="mr-2" /> Medications</h2>
                             <ul className="space-y-2 mb-4">
                                 {selectedDayMedicationTasks.length > 0 ? (
                                     selectedDayMedicationTasks.map(task => (
                                         <li key={task.taskId} className="border-l-4 border-orange-400 pl-3 text-sm flex justify-between items-center bg-yellow-50 p-2 rounded">
-                                            <span>{task.title}</span>
+                                            <span className="text-lg">{task.title}</span>
                                             {selectedDate.toDateString() === today.toDateString() && (
                                                 <button 
                                                     onClick={() => handleMedicationCheck(task.medId)}
-                                                    className={`p-1 rounded-full transition ${task.isChecked ? 'bg-orange-500 text-white' : 'border border-orange-500 text-orange-500 hover:bg-orange-50'}`}
+                                                    className={`p-1 rounded-full transition ${task.isChecked ? 'border bg-orange-500 text-white' : 'border-orange-500 text-orange-500 hover:bg-orange-50'}`}
                                                 >
-                                                    <FaCheckSquare size={18} />
+                                                    <FaCheckCircle size={24} />
                                                 </button>
                                             )}
                                         </li>
                                     ))
                                 ) : (
-                                    <li className="text-gray-500 text-sm italic">No medications.</li>
+                                    <li className="text-2xl text-gray-500 text-sm italic">No medications.</li>
                                 )}
                             </ul>
-                            <h3 className="font-bold text-base mb-2 text-blue-500 flex items-center"><FaUserMd className="mr-2" /> Appointments</h3>
+                            <h2 className="text-2xl font-bold mb-2 text-blue-500 flex items-center"><FaUserMd className="mr-2" /> Appointments</h2>
                             <ul className="space-y-2">
                                 {selectedDayAppointments.length > 0 ? (
                                     selectedDayAppointments.map(appt => (
                                         <li key={appt.id} className={`border-l-4 border-blue-400 pl-3 bg-blue-50 p-2 rounded`}>
-                                            <p className="font-semibold">{appt.title} - {appt.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-                                            <p className="text-xs text-gray-600">📍 {appt.location || 'N/A'}</p>
-                                            <p className="text-xs text-gray-500 italic flex items-center"><FaStickyNote className="mr-1" /> {appt.notes || 'No notes.'}</p>
-                                            <button onClick={() => setEditingAppointment(appt)} className="text-xs text-blue-500 hover:text-blue-700 mt-1">Edit Event</button>
+                                            <p className="text-lg font-semibold">{appt.title} - {appt.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+                                            <p className="text-md text-gray-600">📍 {appt.location || 'N/A'}</p>
+                                            <p className="text-md text-gray-500 italic flex items-center"><FaStickyNote className="mr-1" /> {appt.notes || 'No notes.'}</p>
+                                            <button onClick={() => setEditingAppointment(appt)} className="text-sm text-blue-500 hover:text-blue-700 mt-1">Edit Event</button>
                                         </li>
                                     ))
                                 ) : (
-                                    <li className="text-gray-500 text-sm italic">No appointments on this date.</li>
+                                    <li className="text-2xl text-gray-500 text-sm italic">No appointments on this date.</li>
                                 )}
                             </ul>
                         </div>
                         <form onSubmit={handleAddAppointment} className="p-6 bg-blue-50 border border-blue-100 rounded-xl shadow-lg">
-                            <h2 className="text-2xl font-bold mb-4 flex items-center text-gray-800">
+                            <h2 className="text-3xl font-bold mb-4 flex items-center text-gray-800">
                                 <FaPlusCircle className={`mr-2 text-[${BLUE_ACCENT}]`} size={24} /> 
                                 Add New Appointment
                             </h2>
@@ -313,7 +313,7 @@ export default function CalendarPage() {
                     </div>
                     <div className="space-y-6">
                         <div className={`p-6 bg-[${GREEN_ACCENT}] text-white rounded-xl shadow-lg`}>
-                            <h2 className="text-2xl font-extrabold mb-4 flex items-center">
+                            <h2 className="text-3xl font-extrabold mb-4 flex items-center">
                                 <FaPills className="mr-2" size={24} />
                                 Today's Medication Schedule
                             </h2>
@@ -321,22 +321,22 @@ export default function CalendarPage() {
                                 {todaysMedicationTasks.length > 0 ? (
                                     todaysMedicationTasks.map(task => (
                                         <li key={task.taskId} className="bg-white/20 p-3 rounded-lg flex justify-between items-center font-medium">
-                                            <span>{task.title}</span>
+                                            <span className="text-lg">{task.title}</span>
                                             <button 
                                                 onClick={() => handleMedicationCheck(task.medId)}
                                                 className={`p-1 rounded-full transition ${task.isChecked ? 'bg-white text-green-600' : 'border border-white hover:bg-white/30'}`}
                                             >
-                                                <FaCheckSquare size={20} />
+                                                <FaCheckCircle size={24} />
                                             </button>
                                         </li>
                                     ))
                                 ) : (
-                                    <li className="text-white italic opacity-80">No medications scheduled for today.</li>
+                                    <li className="text-2xl text-white italic opacity-80">No medications scheduled for today.</li>
                                 )}
                             </ul>
                         </div>
                         <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-                            <h2 className="text-2xl font-extrabold mb-4 flex items-center text-gray-800">
+                            <h2 className="text-3xl font-extrabold mb-4 flex items-center text-gray-800">
                                 <FaRegCalendarAlt className={`mr-2 text-[${BLUE_ACCENT}]`} size={24} />
                                 Upcoming Appointments
                             </h2>
@@ -344,14 +344,14 @@ export default function CalendarPage() {
                                 {upcomingAppointments.length > 0 ? (
                                     upcomingAppointments.map(appt => (
                                         <li key={appt.id} className={`border-l-4 border-[${BLUE_ACCENT}] pl-3`}>
-                                            <p className="font-bold">{appt.title}</p>
-                                            <p className="text-sm text-gray-600">
+                                            <p className="font-bold text-lg ">{appt.title}</p>
+                                            <p className="text-md text-gray-600">
                                                 {appt.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short', hour: 'numeric', minute: '2-digit', hour12: true })}
                                             </p>
                                         </li>
                                     ))
                                 ) : (
-                                    <li className="text-gray-500 italic">No upcoming appointments scheduled.</li>
+                                    <li className="text-xl text-gray-500 italic">No upcoming appointments scheduled.</li>
                                 )}
                             </ul>
                         </div>

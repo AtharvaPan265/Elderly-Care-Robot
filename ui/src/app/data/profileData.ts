@@ -151,10 +151,12 @@ export const DEFAULT_PROFILE: UserProfile = {
     doctorPhone: '(555) 987-6543',
     doctorAddress: '123 Mulberry Lane, Hollywood, CA',
     medicationList: [
-        { id: 1, name: "Levetiracetam", dosage: "250 mg", frequency: "Twice Daily", lastCheckedDate: undefined, notes: "This medicine helps prevent seizures. Tell your caregiver if it makes you feel upset or confused."},
-        { id: 2, name: "Donepezil", dosage: "5 mg", frequency: "Daily", lastCheckedDate: undefined, notes: "This medicine helps with memory and thinking. It may cause an upset stomach or strange dreams." },
-        { id: 3, name: "Memantine", dosage: "5 mg", frequency: "Twice Daily", lastCheckedDate: undefined, notes: "This medicine helps you think more clearly. Tell your caregiver if you feel dizzy." },
-        { id: 4, name: "Vitamin D3", dosage: "1000 IU", frequency: "Daily", lastCheckedDate: undefined, notes: "This will help keep your bones strong." }
+        { id: 1, name: "Levetiracetam (1st Dose)", dosage: "250 mg", frequency: "Daily", lastCheckedDate: undefined, notes: "This medicine helps prevent seizures. Tell your caregiver if it makes you feel upset or confused."},
+        { id: 2, name: "Levetiracetam (2nd Dose)", dosage: "250 mg", frequency: "Daily", lastCheckedDate: undefined, notes: "This medicine helps prevent seizures. Tell your caregiver if it makes you feel upset or confused."},
+        { id: 3, name: "Donepezil", dosage: "5 mg", frequency: "Daily", lastCheckedDate: undefined, notes: "This medicine helps with memory and thinking. It may cause an upset stomach or strange dreams." },
+        { id: 4, name: "Memantine (1st Dose)", dosage: "5 mg", frequency: "Daily", lastCheckedDate: undefined, notes: "This medicine helps you think more clearly. Tell your caregiver if you feel dizzy." },
+        { id: 5, name: "Memantine (2nd Dose)", dosage: "5 mg", frequency: "Daily", lastCheckedDate: undefined, notes: "This medicine helps you think more clearly. Tell your caregiver if you feel dizzy." },
+        { id: 6, name: "Vitamin D3", dosage: "1000 IU", frequency: "Daily", lastCheckedDate: undefined, notes: "This will help keep your bones strong." }
     ],
     mmseScore: '19/30 (2024)',
 
