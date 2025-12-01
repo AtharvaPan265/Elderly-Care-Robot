@@ -77,9 +77,10 @@ export default function ChatPage() {
             };
 
             mediaRecorder.onstop = async () => {
-                // Convert chunks to a single audio file
-                const blob = new Blob(chunks, { type: 'audio/webm' });
-                const file = new File([blob], "audio.webm", { type: 'audio/webm' });
+                // 1. Fix: Explicitly set MIME type to webm/opus for better FFmpeg compatibility
+                const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' });
+                // 2. Create file with .webm extension
+                const file = new File([blob], "recording.webm", { type: 'audio/webm' });
                 
                 // Send to API
                 await handleTranscribe(file);
@@ -100,7 +101,7 @@ export default function ChatPage() {
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
-            setIsTranscribing(true);
+            setIsTranscribing(true); // Set loading state immediately
         }
     };
 
@@ -258,7 +259,7 @@ export default function ChatPage() {
                     <div ref={messagesEndRef} />
                 </div>
                 
-                {/* 2. Input Form */}
+                {/* Input Form */}
                 <form onSubmit={handleSendMessage} className="flex flex-shrink-0 items-center gap-2">
                     
                     {/* Microphone Button */}
@@ -282,14 +283,14 @@ export default function ChatPage() {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             placeholder={isTranscribing ? "Transcribing audio..." : "Type your message here..."}
-                            className="w-full p-3 border-2 border-gray-300 rounded-xl shadow-inner focus:border-blue-500 outline-none"
+                            className="w-full p-3 border-2 border-gray-300 rounded-xl shadow-inner focus:border-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                             disabled={isLoading || isTranscribing}
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className={`bg-[${BLUE_ACCENT}] text-white p-3 rounded-xl font-bold transition hover:bg-sky-500 flex items-center justify-center shadow-md`}
+                        className={`bg-[${BLUE_ACCENT}] text-white p-3 rounded-xl font-bold transition hover:bg-sky-500 flex items-center justify-center shadow-md disabled:bg-gray-300`}
                         disabled={isLoading || isTranscribing}
                     >
                         <FaPaperPlane size={20} />

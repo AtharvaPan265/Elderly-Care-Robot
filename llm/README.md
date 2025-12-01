@@ -38,6 +38,8 @@ TAVILY_API_KEY=
 
 then you can run the langraph server in your terminal
 
+**if you want to use the gemini API then you must change agent_local.py->agent.py in langgraph.json**
+
 ```sh
 langraph dev
 ```
