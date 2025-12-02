@@ -8,6 +8,9 @@ import { FaQuestion, FaLightbulb, FaMagic, FaRegSmileBeam, FaForward } from 'rea
 
 import { memories, Memory } from '@/app/data/memoriesData';
 
+import { sendStatelessMessage } from './llmClient.js';
+
+
 const PARCHMENT_LIGHT = '#f5f5e0';
 const BLUE_ACCENT = '#87ceeb';
 const GREEN_ACCENT = '#8fbc8f';
@@ -41,7 +44,7 @@ export default function MemoryQuizPage() {
 
         const photoMemories = memories.filter(m => m.type === 'Photo' && m.imagePath);
         if (photoMemories.length === 0) return;
-        
+
         const randomMemory = photoMemories[Math.floor(Math.random() * photoMemories.length)];
 
         const availableTypes: QuestionType[] = ['general'];
@@ -51,7 +54,7 @@ export default function MemoryQuizPage() {
         if (randomMemory.event) availableTypes.push('event');
 
         const selectedType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-        
+
         let qText = "Tell me about this photo.";
         switch (selectedType) {
             case 'people': qText = "Who do you see in this picture?"; break;
@@ -77,7 +80,7 @@ export default function MemoryQuizPage() {
     }, []);
 
 
-    // Fake LLM for Atharva to replace
+    // Fake LLM should be replaced with sendStatelessMessage
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,27 +88,41 @@ export default function MemoryQuizPage() {
 
         setQuizState(prev => ({ ...prev, isThinking: true }));
 
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
         const mem = quizState.currentMemory!;
         const correctInfo = getCorrectInfo(mem, quizState.questionType);
-        
-        let response = "";
-        const lowerAnswer = quizState.userAnswer.toLowerCase();
-        
-        if (lowerAnswer.includes(correctInfo.toLowerCase())) {
-            response = `That's exactly right! It is ${correctInfo}. You have a great memory! This was titled "${mem.title}".`;
-        } else {
-            response = `That's a good guess! Actually, my records show this is ${correctInfo}. It looks like such a wonderful moment from "${mem.title}".`;
-        }
 
-        setQuizState(prev => ({
-            ...prev,
-            isThinking: false,
-            llmResponse: response,
-            showNext: true
-        }));
+        // Build the prompt for the LLM
+        const userPrompt = `Hey, we are playing a fun memory game! I was shown a photo from my personal collection and asked a question about it use NO TOOLS, the correct information is provided below. ASSUME YOUR TOOLS ARE BROKEN AND YOU CANNOT ACCESS ANY EXTERNAL DATA JUST FOR THE SAKE OF THIS GAME.
+
+Memory Details:
+- Title: ${mem.title}
+- Correct ${quizState.questionType}: ${correctInfo}
+- Question asked: ${quizState.questionText}
+- User's answer: ${quizState.userAnswer}
+
+Please respond warmly to their answer. If they're correct or close, praise them. If not, gently provide the correct information. This conversation is not a thread, do not ask followup questions or try to keep the conversation going.
+    `.trim();
+
+        try {
+            const response = await sendStatelessMessage(userPrompt);
+
+            setQuizState(prev => ({
+                ...prev,
+                isThinking: false,
+                llmResponse: response,
+                showNext: true
+            }));
+        } catch (error) {
+            console.error('LLM Error:', error);
+            setQuizState(prev => ({
+                ...prev,
+                isThinking: false,
+                llmResponse: "I'm having trouble right now, but that's a great answer!",
+                showNext: true
+            }));
+        }
     };
+
 
     const getCorrectInfo = (m: Memory, type: QuestionType): string => {
         switch (type) {
@@ -116,7 +133,7 @@ export default function MemoryQuizPage() {
             default: return m.caption;
         }
     };
-    
+
     const handleSkip = () => {
         if (quizState.isThinking) return;
         loadNewRound();
@@ -134,7 +151,7 @@ export default function MemoryQuizPage() {
 
     return (
         <div className="bg-[#e0f7fa] min-h-screen p-6 md:p-10 flex justify-center items-center">
-            <div className="w-full max-w-6xl bg-white p-8 rounded-3xl shadow-2xl flex flex-col lg:h-[70vh]"> 
+            <div className="w-full max-w-6xl bg-white p-8 rounded-3xl shadow-2xl flex flex-col lg:h-[70vh]">
 
                 <div className="flex justify-between items-center mb-6">
                     <Link href="/games" className="text-gray-700 hover:text-gray-900 flex items-center font-semibold transition">
@@ -147,13 +164,13 @@ export default function MemoryQuizPage() {
                     <div className="w-8"></div>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-6 flex-grow"> 
-                    
-                    <div className="w-full lg:w-1/2 flex flex-col justify-center"> 
+                <div className="flex flex-col lg:flex-row gap-6 flex-grow">
+
+                    <div className="w-full lg:w-1/2 flex flex-col justify-center">
                         <div className="relative w-full h-[350px] lg:h-full bg-gray-100 rounded-2xl overflow-hidden shadow-inner border border-gray-300">
                             {quizState.currentMemory.imagePath && (
-                                <Image 
-                                    src={quizState.currentMemory.imagePath} 
+                                <Image
+                                    src={quizState.currentMemory.imagePath}
                                     alt="Memory to identify"
                                     layout="fill"
                                     objectFit="contain"
@@ -165,7 +182,7 @@ export default function MemoryQuizPage() {
                     </div>
 
                     <div className="w-full lg:w-1/2 flex flex-col justify-between">
-                        
+
                         <div className={`p-6 rounded-2xl mb-auto shadow-sm border border-orange-100`} style={{ backgroundColor: PARCHMENT_LIGHT }}>
                             <div className="flex items-start gap-3">
                                 <FaQuestion className="text-orange-500 mt-1 flex-shrink-0" size={24} />
@@ -192,7 +209,7 @@ export default function MemoryQuizPage() {
                                         className="w-full p-4 rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:ring-blue-200 outline-none text-lg transition"
                                     />
                                 </div>
-                                
+
                                 <div className="flex justify-between gap-4">
                                     <button
                                         type="button"
@@ -200,8 +217,8 @@ export default function MemoryQuizPage() {
                                         disabled={quizState.isThinking}
                                         className={`
                                             py-4 px-6 rounded-xl font-bold text-lg transition shadow-md w-1/3 flex items-center justify-center
-                                            ${quizState.isThinking 
-                                                ? 'bg-gray-400 cursor-not-allowed' 
+                                            ${quizState.isThinking
+                                                ? 'bg-gray-400 cursor-not-allowed'
                                                 : `bg-[${ORANGE_ACCENT}] hover:brightness-90 text-white`
                                             }
                                         `}
@@ -209,13 +226,13 @@ export default function MemoryQuizPage() {
                                         <FaForward className="mr-2" /> Skip
                                     </button>
 
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         disabled={!quizState.userAnswer.trim() || quizState.isThinking}
                                         className={`
                                             py-4 px-6 rounded-xl font-bold text-white text-lg transition shadow-lg flex items-center justify-center w-2/3
-                                            ${quizState.isThinking 
-                                                ? 'bg-gray-400 cursor-not-allowed' 
+                                            ${quizState.isThinking
+                                                ? 'bg-gray-400 cursor-not-allowed'
                                                 : `bg-[${BLUE_ACCENT}] hover:brightness-90`
                                             }
                                         `}
@@ -240,7 +257,7 @@ export default function MemoryQuizPage() {
                                     </p>
                                 </div>
 
-                                <button 
+                                <button
                                     onClick={loadNewRound}
                                     className={`py-4 px-6 rounded-xl font-bold text-white text-lg transition shadow-lg bg-[${GREEN_ACCENT}] hover:brightness-90 flex items-center justify-center`}
                                 >
