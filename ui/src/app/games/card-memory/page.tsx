@@ -22,21 +22,24 @@ export default function CardMemoryPage() {
                     Card Matching Game
                 </h1>
                 
-                <div className="w-full bg-gray-100 rounded-xl overflow-hidden shadow-inner flex flex-col items-center p-4">
+                <div className="w-full bg-gray-100 rounded-xl overflow-hidden shadow-inner flex flex-col items-center p-4" style={{ height: "856px" }}>
                     <iframe
                         src={CARD_EMBED_URL}
                         title="Card Memory Game"
-                        width="80%" 
-                        height="800px"
-                        style={{ border: 'none', minHeight: '800px', marginTop: "-150px", marginBottom: "" }}
-                        sandbox="allow-scripts allow-same-origin allow-popups" 
+                        width="90%"
+                        height="1130px"
+                        scrolling="no"
+                        style={{
+                            border: 'none',
+                            overflow: 'hidden',
+                            transform: "scale(0.9)",
+                            marginTop: "-270px",
+                            marginBottom: ""
+                        }}
+                        sandbox="allow-scripts allow-same-origin allow-popups"
                     >
                         Your browser does not support iframes.
                     </iframe>
-                    
-                    <p className="mt-6 text-sm text-red-600 font-semibold">
-                        
-                    </p>
                 </div>
             </div>
         </div>
