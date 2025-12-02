@@ -73,14 +73,12 @@ export const useUserProfile = () => {
     };
 
     const toggleMedicationCheck = (medId: number) => {
-        console.log(medId);
         if (typeof window === 'undefined') return;
 
         const todayStr = new Date().toISOString().substring(0, 10);
 
         setProfile(prevProfile => {
             const updatedMedList = prevProfile.medicationList.map(med => {
-                console.log(med.name, med.id);
                 if (med.id === medId) {
                     const isCheckedToday = med.lastCheckedDate === todayStr;
                     return { ...med, lastCheckedDate: isCheckedToday ? undefined : todayStr };

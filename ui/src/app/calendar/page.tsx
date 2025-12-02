@@ -62,7 +62,7 @@ export const getDailyMedicationTasks = (meds: Medication[], day: Date) => {
             for (let i = 1; i <= numDoses; i++) {
                 const doseTime = numDoses === 1 ? '' : ` (Dose ${i})`;
                 
-                const isChecked = med.lastCheckedDate === dayStr; 
+                const isChecked = med.lastCheckedDate === dayStr;
                 
                 dailyTasks.push({
                     medId: med.id,
@@ -80,7 +80,7 @@ export const getDailyMedicationTasks = (meds: Medication[], day: Date) => {
 
 export default function CalendarPage() {
     const today = new Date();
-    const todayStart = new Date(today.setHours(0,0,0,0));
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     const { profile, toggleMedicationCheck } = useUserProfile(); 
     const { events: events, setEvents: setAppointments, isLoaded } = usePersistentEvents();
@@ -109,11 +109,11 @@ export default function CalendarPage() {
 
     const todaysMedicationTasks = useMemo(() => {
         return getDailyMedicationTasks(profile.medicationList, today);
-    }, [profile.medicationList, today]);
+    }, [profile, today]);
     
     const selectedDayMedicationTasks = useMemo(() => {
         return getDailyMedicationTasks(profile.medicationList, selectedDate);
-    }, [profile.medicationList, selectedDate]);
+    }, [profile, selectedDate]);
 
     if (!isLoaded) {
         return (
@@ -231,10 +231,10 @@ export default function CalendarPage() {
                                     selectedDayMedicationTasks.map(task => (
                                         <li key={task.taskId} className="border-l-4 border-orange-400 pl-3 text-sm flex justify-between items-center bg-yellow-50 p-2 rounded">
                                             <span className="text-lg">{task.title}</span>
-                                            {selectedDate.toDateString() === today.toDateString() && (
+                                            {selectedDate.toDateString() === new Date().toDateString() && (
                                                 <button 
                                                     onClick={() => handleMedicationCheck(task.medId)}
-                                                    className={`p-1 rounded-full transition ${task.isChecked ? 'border bg-orange-500 text-white' : 'border-orange-500 text-orange-500 hover:bg-orange-50'}`}
+                                                    className={`p-1 rounded-full transition ${task.isChecked ? 'border bg-orange-500 text-white' : 'border-1 border-orange-500 text-orange-500 hover:bg-orange-50'}`}
                                                 >
                                                     <FaCheckCircle size={24} />
                                                 </button>
@@ -314,7 +314,7 @@ export default function CalendarPage() {
                     <div className="space-y-6">
                         <div className={`p-6 bg-[${GREEN_ACCENT}] text-white rounded-xl shadow-lg`}>
                             <h2 className="text-3xl font-extrabold mb-4 flex items-center">
-                                <FaPills className="mr-2" size={24} />
+                                <FaPills className="mr-2" size={100} />
                                 Today's Medication Schedule
                             </h2>
                             <ul className="space-y-3">
