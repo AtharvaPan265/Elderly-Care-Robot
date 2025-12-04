@@ -42,7 +42,7 @@ class ChatState(TypedDict):
 # Make sure to run `ollama pull llama3.1` (or your preferred model) first!
 llm = ChatOllama(
     model="qwen3:4b",  # Change to "mistral", "gemma2", etc. as needed
-    temperature=0.7,
+    temperature=0.6,
     # num_ctx=60000,
 )
 
