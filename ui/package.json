@@ -12,7 +12,7 @@
     "@ai-sdk/langchain": "^1.0.104",
     "@langchain/langgraph-sdk": "^1.0.2",
     "ai": "^5.0.104",
-    "next": "15.5.4",
+    "next": "^15.5.7",
     "openai": "^6.9.1",
     "react": "19.1.0",
     "react-calendar": "^6.0.0",
